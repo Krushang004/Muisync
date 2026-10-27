@@ -14,3 +14,5 @@ export const SPOTIFY_URL = 'https://open.spotify.com';
 export const YOUTUBE_MUSIC_URL = 'https://music.youtube.com';
 export const AMAZON_MUSIC_URL = 'https://music.amazon.com';
 export const APPLE_MUSIC_URL = 'https://music.apple.com';
+
+export const YOUTUBE_WATCH_URL = 'https://www.youtube.com/watch';

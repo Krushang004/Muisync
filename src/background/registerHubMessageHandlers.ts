@@ -5,6 +5,7 @@ import createTrackNotificationMessageHandler from './messages/CREATE_TRACK_NOTIF
 import dispatchMessageHandler from './messages/DISPATCH';
 import getSelfTabMessageHandler from './messages/GET_SELF_TAB';
 import getSettingsMessageHandler from './messages/GET_SETTINGS';
+import openInYouTubeMessageHandler from './messages/OPEN_IN_YOUTUBE';
 import queryTabsMessageHandler from './messages/QUERY_TABS';
 import reloadTabsMessageHandler from './messages/RELOAD_TABS';
 
@@ -60,6 +61,10 @@ export const registerHubMessageHandlers = (port: chrome.runtime.Port) => {
 
       case 'ACTIVATE_OR_OPEN_TAB':
         await activateOrOpenTabMessageHandler(req, res);
+        break;
+
+      case 'OPEN_IN_YOUTUBE':
+        await openInYouTubeMessageHandler(req, res);
         break;
     }
   });
