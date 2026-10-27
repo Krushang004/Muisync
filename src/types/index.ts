@@ -5,5 +5,6 @@ export * from './PlayerState';
 export * from './QueueItem';
 export * from './RepeatMode';
 export * from './Settings';
+export * from './StatusBanner';
 export * from './Track';
 export * from './Util';
