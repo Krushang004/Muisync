@@ -15,5 +15,7 @@ export const YOUTUBE_MUSIC_URL = 'https://music.youtube.com';
 export const AMAZON_MUSIC_URL = 'https://music.amazon.com';
 export const APPLE_MUSIC_URL = 'https://music.apple.com';
 
+export const YOUTUBE_WATCH_URL = 'https://www.youtube.com/watch';
+
 export const STATUS_BANNER_URL =
   'https://raw.githubusercontent.com/Krushang004/Muisync/main/status.json';

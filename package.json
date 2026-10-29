@@ -71,6 +71,29 @@
         ]
       }
     ],
+    "commands": {
+      "play-pause": {
+        "suggested_key": {
+          "default": "Ctrl+Shift+Space",
+          "mac": "Command+Shift+Space"
+        },
+        "description": "Play/Pause"
+      },
+      "next-track": {
+        "suggested_key": {
+          "default": "Ctrl+Shift+Right",
+          "mac": "Command+Shift+Right"
+        },
+        "description": "Next track"
+      },
+      "previous-track": {
+        "suggested_key": {
+          "default": "Ctrl+Shift+Left",
+          "mac": "Command+Shift+Left"
+        },
+        "description": "Previous track"
+      }
+    },
     "permissions": [
       "storage"
     ],
@@ -78,9 +101,11 @@
       "https://raw.githubusercontent.com/*"
     ],
     "optional_host_permissions": [
-      "https://*/*",
-      "*://*/*",
-      "<all_urls>"
+      "https://open.spotify.com/*",
+      "https://music.apple.com/*",
+      "https://music.youtube.com/*",
+      "https://music.amazon.com/*",
+      "https://www.synqapp.io/*"
     ],
     "optional_permissions": [
       "tabs",
