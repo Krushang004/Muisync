@@ -15,6 +15,8 @@ const handler: PlasmoMessaging.MessageHandler<PubSubMessage> = async (
 
     if (port) {
       port.postMessage(req.body);
+    } else {
+      broadcast(req.body);
     }
   } else if (req.body) {
     broadcast(req.body);

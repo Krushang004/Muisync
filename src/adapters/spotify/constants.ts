@@ -1,4 +1,5 @@
 export const SELECTORS = {
+  nowPlayingBar: '[data-testid="now-playing-bar"]',
   playPauseButton: 'button[data-testid="control-button-playpause"]',
   nextButton: 'button[data-testid="control-button-skip-forward"]',
   previousButton: 'button[data-testid="control-button-skip-back"]',
@@ -8,24 +9,25 @@ export const SELECTORS = {
   progressBar: 'div[data-testid="playback-progressbar"]',
   playbackPosition: 'div[data-testid="playback-position"]',
   trackTitle:
-    '[data-testid="context-item-info-title"], [data-testid="now-playing-widget"] [data-testid="context-item-link"], [data-testid="now-playing-widget"] a[href*="/track/"], [data-testid="now-playing-widget"] a[href*="/episode/"]',
+    '[data-testid="now-playing-bar"] [data-testid="track-info-name"], [data-testid="now-playing-bar"] [data-testid="context-item-info-title"], [data-testid="now-playing-bar"] [data-testid="context-item-link"], [data-testid="now-playing-bar"] a[href*="/track/"], [data-testid="now-playing-bar"] a[href*="/episode/"], [data-testid="track-info-name"], [data-testid="context-item-info-title"], [data-testid="context-item-link"], [data-testid="now-playing-widget"] [data-testid="context-item-link"], [data-testid="now-playing-widget"] a[href*="/track/"], [data-testid="now-playing-widget"] a[href*="/episode/"]',
   trackArtist:
-    'a[data-testid="context-item-info-artist"], [data-testid="context-item-info-subtitles"] a, [data-testid="now-playing-widget"] a[href*="/artist/"]',
+    '[data-testid="now-playing-bar"] [data-testid="track-info-artists"] a, [data-testid="now-playing-bar"] [data-testid="track-info-artists"], [data-testid="now-playing-bar"] a[data-testid="context-item-info-artist"], [data-testid="now-playing-bar"] [data-testid="context-item-info-subtitles"] a, [data-testid="now-playing-bar"] a[href*="/artist/"], [data-testid="track-info-artists"] a, [data-testid="track-info-artists"], a[data-testid="context-item-info-artist"], [data-testid="context-item-info-subtitles"] a, [data-testid="now-playing-widget"] a[href*="/artist/"]',
   trackShow: 'a[data-testid="context-item-info-show"]',
   coverArt:
-    'img[data-testid="cover-art-image"], [data-testid="now-playing-widget"] img',
+    '[data-testid="now-playing-bar"] img[data-testid="cover-art-image"], [data-testid="now-playing-bar"] img, img[data-testid="cover-art-image"], [data-testid="now-playing-widget"] img',
   // The like/save button has no data-testid and its aria-label changes between
   // states ("Add to Liked Songs" when unsaved, "Add to playlist" when saved),
-  // so we match the only checkbox-style button inside the now-playing widget and
+  // so we match the only checkbox-style button inside the now-playing widget/bar and
   // read its saved state from aria-checked.
-  likeButton: 'div[data-testid="now-playing-widget"] button[aria-checked]',
+  likeButton:
+    '[data-testid="now-playing-bar"] button[aria-checked], div[data-testid="now-playing-widget"] button[aria-checked], button[data-testid="add-button"]',
   // The queue panel only exists in the DOM while the user has it open.
   queueButton: 'button[data-testid="control-button-queue"]',
   queuePanel: 'aside[aria-label="Queue"]',
   queueRow: '[role="row"]',
   queueRowImage: 'img[data-testid="entity-image"]',
   queueRowPlayButton:
-    'button[data-testid="play-button"], button[data-testid="row-play-button"], button[aria-label^="Play"]',
+    'button[data-testid="play-button"], button[data-testid="row-play-button"], button[aria-label^="Play"], button[aria-label*="Play"], button[data-encore-id="buttonPrimary"]',
   queueRowTitle: '[data-encore-id="listRowTitle"]',
   queueRowSubtitle: '[data-encore-id="listRowSubtitle"]',
   // Track/album/artist detail-page header. These elements live in the page

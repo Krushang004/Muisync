@@ -70,7 +70,8 @@ export const createContentControllerHandler = (
       case MusicControllerMessage.PLAY_QUEUE_TRACK: {
         await controller.playQueueTrack(
           message.body.trackId,
-          message.body.duplicateIndex
+          message.body.duplicateIndex,
+          message.body.trackIndex
         );
         break;
       }

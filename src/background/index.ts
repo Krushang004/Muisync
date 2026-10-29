@@ -23,11 +23,18 @@ const broadcastToContent = (name: MusicControllerMessage): void => {
 };
 
 chrome.runtime.onConnectExternal.addListener((port) => {
+  if (port.sender?.tab?.id) {
+    getHubMap().set(port.sender.tab.id, port);
+  }
+
   registerHubMessageHandlers(port);
 
   updateMusicServiceTabs();
 
   port.onDisconnect.addListener(() => {
+    if (port.sender?.tab?.id) {
+      getHubMap().delete(port.sender.tab.id);
+    }
     updateMusicServiceTabs();
   });
 });
