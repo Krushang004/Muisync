@@ -58,7 +58,8 @@ export const useQueue = (startAt: 'top' | 'next', count?: number) => {
         name: MusicControllerMessage.PLAY_QUEUE_TRACK,
         body: {
           trackId,
-          duplicateIndex
+          duplicateIndex,
+          trackIndex
         }
       },
       musicServiceTab?.tabId

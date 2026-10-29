@@ -122,7 +122,11 @@ export interface ContentController {
    * @param id The ID of the item to play.
    * @param duplicateIndex If there are multiple items with the same ID, this is the duplicate index of the item to play.
    */
-  playQueueTrack(id: string, duplicateIndex?: number): ValueOrPromise<void>;
+  playQueueTrack(
+    id: string,
+    duplicateIndex?: number,
+    trackIndex?: number
+  ): ValueOrPromise<void>;
 
   /**
    * Open the service's queue UI. Optional: only implemented by services (like

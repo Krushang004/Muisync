@@ -64,7 +64,7 @@ export class SpotifyObserver implements ContentObserver {
       subtree: true,
       childList: true,
       characterData: true,
-      attributeFilter: ['aria-label', 'aria-checked', 'src']
+      attributeFilter: ['aria-label', 'aria-checked', 'src', 'title', 'href']
     });
   }
 
@@ -85,6 +85,7 @@ export class SpotifyObserver implements ContentObserver {
     if (
       currentTrack &&
       (this._lastReportedTrackName === null ||
+        this._lastReportedTrackId === null ||
         currentTrack.name !== this._lastReportedTrackName ||
         (currentTrack.id && currentTrack.id !== this._lastReportedTrackId))
     ) {

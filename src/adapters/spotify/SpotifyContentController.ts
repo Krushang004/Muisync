@@ -4,6 +4,7 @@ import type {
   ContentController
 } from '~core/adapter';
 import type { TrackLinkDetails } from '~core/adapter';
+import { updateCurrentTrack, updatePlaybackState } from '~core/player';
 import { RepeatMode } from '~types';
 import type { PlaybackState, QueueItem, Track } from '~types';
 import { debounce } from '~util/debounce';
@@ -32,55 +33,75 @@ export class SpotifyContentController implements ContentController {
   private _lastValidQueue: QueueItem[] = [];
 
   private _isPlaying(): boolean {
-    const playPauseButton = this._getElement<HTMLButtonElement>(
+    const playPauseButton = this._getElementInside<HTMLButtonElement>(
+      this._getNowPlayingBar(),
       SELECTORS.playPauseButton
     );
-    return playPauseButton?.getAttribute('aria-label') === 'Pause';
+    return (
+      playPauseButton?.getAttribute('aria-label')?.startsWith('Pause') ?? false
+    );
   }
 
   public play(): void {
-    const playPauseButton = this._getElement<HTMLButtonElement>(
+    const playPauseButton = this._getElementInside<HTMLButtonElement>(
+      this._getNowPlayingBar(),
       SELECTORS.playPauseButton
     );
 
     // The play/pause button is a toggle, so only click it if we're paused.
-    if (playPauseButton?.getAttribute('aria-label') === 'Play') {
+    if (playPauseButton?.getAttribute('aria-label')?.startsWith('Play')) {
       playPauseButton.click();
     }
   }
 
   public pause(): void {
-    const playPauseButton = this._getElement<HTMLButtonElement>(
+    const playPauseButton = this._getElementInside<HTMLButtonElement>(
+      this._getNowPlayingBar(),
       SELECTORS.playPauseButton
     );
 
     // The play/pause button is a toggle, so only click it if we're playing.
-    if (playPauseButton?.getAttribute('aria-label') === 'Pause') {
+    if (playPauseButton?.getAttribute('aria-label')?.startsWith('Pause')) {
       playPauseButton.click();
     }
   }
 
   public playPause(): void {
-    this._getElement<HTMLButtonElement>(SELECTORS.playPauseButton)?.click();
+    this._getElementInside<HTMLButtonElement>(
+      this._getNowPlayingBar(),
+      SELECTORS.playPauseButton
+    )?.click();
   }
 
   public next(): void {
-    this._getElement<HTMLButtonElement>(SELECTORS.nextButton)?.click();
+    this._getElementInside<HTMLButtonElement>(
+      this._getNowPlayingBar(),
+      SELECTORS.nextButton
+    )?.click();
   }
 
   public previous(): void {
     // Spotify's own skip-back button restarts the track if it's past the first
     // few seconds and otherwise goes to the previous track, which matches the
     // behaviour we want, so a single click is enough.
-    this._getElement<HTMLButtonElement>(SELECTORS.previousButton)?.click();
+    this._getElementInside<HTMLButtonElement>(
+      this._getNowPlayingBar(),
+      SELECTORS.previousButton
+    )?.click();
   }
 
   public toggleRepeatMode(): void {
-    this._getElement<HTMLButtonElement>(SELECTORS.repeatButton)?.click();
+    this._getElementInside<HTMLButtonElement>(
+      this._getNowPlayingBar(),
+      SELECTORS.repeatButton
+    )?.click();
   }
 
   public toggleLike(): void {
-    this._getElement<HTMLButtonElement>(SELECTORS.likeButton)?.click();
+    this._getElementInside<HTMLButtonElement>(
+      this._getNowPlayingBar(),
+      SELECTORS.likeButton
+    )?.click();
   }
 
   /**
@@ -91,7 +112,10 @@ export class SpotifyContentController implements ContentController {
   }
 
   public toggleMute(): void {
-    this._getElement<HTMLButtonElement>(SELECTORS.muteButton)?.click();
+    this._getElementInside<HTMLButtonElement>(
+      this._getNowPlayingBar(),
+      SELECTORS.muteButton
+    )?.click();
   }
 
   public setVolume(volume: number, relative?: boolean): void {
@@ -135,6 +159,7 @@ export class SpotifyContentController implements ContentController {
   }
 
   public getPlayerState(): PlaybackState | null {
+    const nowPlayingBar = this._getNowPlayingBar();
     const progressInput = this._getProgressInput();
 
     if (!progressInput) {
@@ -143,7 +168,8 @@ export class SpotifyContentController implements ContentController {
 
     // Prefer the on-screen position text (e.g. "0:34"), which Spotify updates
     // every second, and fall back to the range input's value (in ms).
-    const positionText = this._getElement<HTMLElement>(
+    const positionText = this._getElementInside<HTMLElement>(
+      nowPlayingBar,
       SELECTORS.playbackPosition
     )?.innerText;
 
@@ -161,13 +187,16 @@ export class SpotifyContentController implements ContentController {
       currentTime = Math.round(parseInt(currentTimeValue) / 1000);
     }
 
-    const playPauseButton = this._getElement<HTMLButtonElement>(
+    const playPauseButton = this._getElementInside<HTMLButtonElement>(
+      nowPlayingBar,
       SELECTORS.playPauseButton
     );
     // The aria-label is "Play" when paused and "Pause" when playing.
-    const isPlaying = playPauseButton?.getAttribute('aria-label') === 'Pause';
+    const isPlaying =
+      playPauseButton?.getAttribute('aria-label')?.startsWith('Pause') ?? false;
 
-    const repeatButton = this._getElement<HTMLButtonElement>(
+    const repeatButton = this._getElementInside<HTMLButtonElement>(
+      nowPlayingBar,
       SELECTORS.repeatButton
     );
     const repeatText = repeatButton?.getAttribute('aria-label');
@@ -185,13 +214,23 @@ export class SpotifyContentController implements ContentController {
   }
 
   public getCurrentTrack(): Track | null {
-    const titleElement = this._getElement<HTMLElement>(SELECTORS.trackTitle);
+    const nowPlayingBar = this._getNowPlayingBar();
+    const titleElement = this._getElementInside<HTMLElement>(
+      nowPlayingBar,
+      SELECTORS.trackTitle
+    );
     const name = titleElement?.innerText?.trim();
 
-    let artistElements = this._getElements<HTMLElement>(SELECTORS.trackArtist);
+    let artistElements = this._getElementsInside<HTMLElement>(
+      nowPlayingBar,
+      SELECTORS.trackArtist
+    );
 
     if (!artistElements.length) {
-      artistElements = this._getElements<HTMLElement>(SELECTORS.trackShow);
+      artistElements = this._getElementsInside<HTMLElement>(
+        nowPlayingBar,
+        SELECTORS.trackShow
+      );
     }
 
     // Spotify renders more than one copy of the now-playing artist links, so a
@@ -205,7 +244,8 @@ export class SpotifyContentController implements ContentController {
       )
     ).join(', ');
 
-    const albumCoverUrl = this._getElement<HTMLImageElement>(
+    const albumCoverUrl = this._getElementInside<HTMLImageElement>(
+      nowPlayingBar,
       SELECTORS.coverArt
     )?.src;
 
@@ -215,28 +255,60 @@ export class SpotifyContentController implements ContentController {
       : 0;
 
     if (!name) {
-      // If Spotify temporarily fails to provide metadata during a transition while playback is active,
-      // return the last valid track to prevent UI flicker or false "No Music Playing" state.
-      if (this._isPlaying() && this._lastValidTrack) {
+      // 1. If Spotify's queue already has an active playing item, that fresh item reflects
+      // the actual track transition even while nowPlayingBar is re-rendering.
+      const activeQueueItem = this._lastValidQueue.find(
+        (item) => item.isPlaying
+      );
+      if (activeQueueItem?.track) {
+        this._lastValidTrack = {
+          ...activeQueueItem.track,
+          duration:
+            duration > 0 ? duration : activeQueueItem.track.duration ?? 0
+        };
         return this._lastValidTrack;
       }
-      this._lastValidTrack = null;
+
+      // 2. If Spotify temporarily fails to provide metadata during a transition or pause,
+      // return the last valid track to prevent UI flicker or false "No Music Playing" state.
+      if (this._lastValidTrack) {
+        return this._lastValidTrack;
+      }
+
+      // 3. Fall back to the first queue item if available.
+      if (this._lastValidQueue[0]?.track) {
+        this._lastValidTrack = this._lastValidQueue[0].track;
+        return this._lastValidTrack;
+      }
+
       return null;
     }
 
-    // Attempt to extract track ID from a link in the now playing widget
+    // Attempt to extract track ID from a link in the now playing widget / bar
     let id = '';
     const trackLink =
+      (titleElement?.tagName === 'A'
+        ? (titleElement as HTMLAnchorElement)
+        : null) ??
       titleElement?.closest('a') ??
-      this._getElement<HTMLAnchorElement>(
-        '[data-testid="now-playing-widget"] a[href*="/track/"], [data-testid="now-playing-widget"] a[href*="/episode/"]'
+      titleElement?.querySelector<HTMLAnchorElement>('a') ??
+      this._getElementInside<HTMLAnchorElement>(
+        nowPlayingBar,
+        'a[href*="/track/"], a[href*="/episode/"]'
       );
     const href = trackLink?.getAttribute('href') ?? '';
     const match = href.match(/\/(?:track|episode)\/([a-zA-Z0-9]+)/);
     if (match?.[1]) {
       id = match[1];
     } else {
-      id = `${name}-${artistName}`;
+      const activeQueueItem = this._lastValidQueue.find(
+        (item) => item.isPlaying
+      );
+      if (activeQueueItem?.track?.id && activeQueueItem.track.name === name) {
+        id = activeQueueItem.track.id;
+      } else {
+        id = `${name}-${artistName}`;
+      }
     }
 
     const track: Track = {
@@ -247,7 +319,9 @@ export class SpotifyContentController implements ContentController {
       albumCoverUrl: albumCoverUrl ?? '',
       duration,
       isLiked: this._isCurrentTrackLiked(),
-      type: this._getElements(SELECTORS.trackShow).length ? 'podcast' : 'song'
+      type: this._getElementsInside(nowPlayingBar, SELECTORS.trackShow).length
+        ? 'podcast'
+        : 'song'
     };
 
     this._lastValidTrack = track;
@@ -306,10 +380,19 @@ export class SpotifyContentController implements ContentController {
    * title, or duplicate index), triggers hover to reveal the play button, and
    * falls back to double-clicking the row.
    */
-  public async playQueueTrack(id: string, duplicateIndex = 0): Promise<void> {
+  public async playQueueTrack(
+    id: string,
+    duplicateIndex = 0,
+    trackIndex?: number
+  ): Promise<void> {
     if (!this._isQueueOpen()) {
       this.openQueue();
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      for (let i = 0; i < 10; i++) {
+        if (this._isQueueOpen()) {
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
     }
 
     const queuePanel = this._getElement(SELECTORS.queuePanel);
@@ -326,23 +409,42 @@ export class SpotifyContentController implements ContentController {
             r.dataset.flipId ??
             r.closest<HTMLElement>('[data-flip-id]')?.dataset.flipId ??
             r.querySelector<HTMLElement>('[data-flip-id]')?.dataset.flipId;
-          return flipId === id;
+          if (flipId && flipId === id) {
+            return true;
+          }
+
+          const linkHref =
+            r
+              .querySelector<HTMLAnchorElement>(
+                'a[href*="/track/"], a[href*="/episode/"]'
+              )
+              ?.getAttribute('href') ?? '';
+          if (linkHref && linkHref.includes(id)) {
+            return true;
+          }
+
+          const title = r
+            .querySelector<HTMLElement>(SELECTORS.queueRowTitle)
+            ?.innerText.trim();
+          if (title && (title === id || id.startsWith(title))) {
+            return true;
+          }
+
+          return false;
         });
+
         if (matchingRows.length > 0) {
           targetRow = matchingRows[duplicateIndex] ?? matchingRows[0];
         }
       }
 
-      if (!targetRow && id) {
-        const matchingRows = rows.filter((r) => {
-          const title = r
-            .querySelector<HTMLElement>(SELECTORS.queueRowTitle)
-            ?.innerText.trim();
-          return title === id || `${title}`.includes(id);
-        });
-        if (matchingRows.length > 0) {
-          targetRow = matchingRows[duplicateIndex] ?? matchingRows[0];
-        }
+      if (
+        !targetRow &&
+        trackIndex !== undefined &&
+        trackIndex >= 0 &&
+        trackIndex < rows.length
+      ) {
+        targetRow = rows[trackIndex];
       }
 
       if (!targetRow && duplicateIndex >= 0 && duplicateIndex < rows.length) {
@@ -374,24 +476,44 @@ export class SpotifyContentController implements ContentController {
           ) ??
           targetRow.querySelector<HTMLButtonElement>(
             'button[aria-label^="Play"]'
+          ) ??
+          targetRow.querySelector<HTMLButtonElement>(
+            'button[aria-label*="Play"]'
+          ) ??
+          targetRow.querySelector<HTMLButtonElement>(
+            'button[data-encore-id="buttonPrimary"]'
           );
 
         if (playButton) {
           playButton.click();
-          return;
+        } else {
+          const clickTarget =
+            targetRow.querySelector<HTMLElement>(SELECTORS.queueRowTitle) ??
+            targetRow;
+          const events = [
+            'pointerdown',
+            'mousedown',
+            'pointerup',
+            'mouseup',
+            'click',
+            'dblclick'
+          ];
+          for (const eventName of events) {
+            clickTarget.dispatchEvent(
+              new MouseEvent(eventName, {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                detail: eventName === 'dblclick' ? 2 : 1
+              })
+            );
+          }
         }
 
-        const clickTarget =
-          targetRow.querySelector<HTMLElement>(SELECTORS.queueRowTitle) ??
-          targetRow;
-        clickTarget.dispatchEvent(
-          new MouseEvent('dblclick', {
-            bubbles: true,
-            cancelable: true,
-            view: window
-          })
-        );
-        clickTarget.click();
+        // Allow Spotify player a brief moment to update before re-reading state
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        await updatePlaybackState(this.getPlayerState());
+        await updateCurrentTrack(this.getCurrentTrack());
         return;
       }
     }
@@ -598,7 +720,8 @@ export class SpotifyContentController implements ContentController {
   }
 
   private _isCurrentTrackLiked(): boolean {
-    const likeButton = this._getElement<HTMLButtonElement>(
+    const likeButton = this._getElementInside<HTMLButtonElement>(
+      this._getNowPlayingBar(),
       SELECTORS.likeButton
     );
 
@@ -621,18 +744,20 @@ export class SpotifyContentController implements ContentController {
   }
 
   private _getVolumeInput(): HTMLInputElement | null {
+    const nowPlayingBar = this._getNowPlayingBar();
     return (
-      this._getElement(SELECTORS.volumeBar)?.querySelector(
-        'input[type="range"]'
-      ) ?? null
+      (nowPlayingBar ?? document)
+        .querySelector(SELECTORS.volumeBar)
+        ?.querySelector('input[type="range"]') ?? null
     );
   }
 
   private _getProgressInput(): HTMLInputElement | null {
+    const nowPlayingBar = this._getNowPlayingBar();
     return (
-      this._getElement(SELECTORS.progressBar)?.querySelector(
-        'input[type="range"]'
-      ) ?? null
+      (nowPlayingBar ?? document)
+        .querySelector(SELECTORS.progressBar)
+        ?.querySelector('input[type="range"]') ?? null
     );
   }
 
@@ -651,6 +776,28 @@ export class SpotifyContentController implements ContentController {
 
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  private _getNowPlayingBar(): HTMLElement | null {
+    return this._getElement<HTMLElement>(SELECTORS.nowPlayingBar);
+  }
+
+  private _getElementInside<T extends Element>(
+    parent: Element | null,
+    selector: string
+  ): T | null {
+    return parent
+      ? parent.querySelector<T>(selector)
+      : this._getElement<T>(selector);
+  }
+
+  private _getElementsInside<T extends Element>(
+    parent: Element | null,
+    selector: string
+  ): T[] {
+    return parent
+      ? Array.from(parent.querySelectorAll<T>(selector))
+      : this._getElements<T>(selector);
   }
 
   private _getElement<T extends Element>(selector: string): T | null {
