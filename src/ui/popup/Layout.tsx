@@ -6,6 +6,7 @@ import { updateMusicServiceTabPictureInPicture } from '~store/slices/musicServic
 import { useMusicServiceTab } from '~ui/shared/contexts/MusicServiceTab';
 
 import Header from '../shared/components/Header';
+import StatusBanner from '../shared/components/StatusBanner';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -36,6 +37,7 @@ const Layout = ({ children, hideButton }: LayoutProps) => {
             : undefined
         }
       />
+      <StatusBanner />
       <Content>{children}</Content>
     </Container>
   );
